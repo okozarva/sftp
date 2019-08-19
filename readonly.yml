@@ -1,0 +1,33 @@
+---
+- name: Create a login user playbook
+  hosts: 127.0.0.1
+  connection: local
+  become: yes
+
+  vars_prompt:
+    - name: "user_name"
+      prompt: "Enter ReadOnly Username"
+      private: no
+
+    - name: "parent_user_name"
+      prompt: "Enter Parent Username"
+      private: no
+
+    - name: "user_password"
+      prompt: "Enter a password for the readonly user"
+      private: yes
+      encrypt: "md5_crypt" #need to have python-passlib installed in local machi                                                                                                                                                            $
+      confirm: yes
+      salt_size: 7
+
+  tasks:
+    - name: Create User
+      user:
+        name: "{{ user_name }}"
+        password: "{{ user_password }}"
+        groups: sftponly   # Empty by default.
+        state: present
+        shell: /usr/sbin/nologin       # Defaults to /bin/bash
+        system: no             # Defaults to no
+        createhome: yes        # Defaults to yes
+        home: "/sftproot/{{ parent_user_name }}"  # Defaults to /home/<username>

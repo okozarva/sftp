@@ -1,0 +1,50 @@
+---
+- name: Create a login user playbook
+  hosts: 127.0.0.1
+  connection: local
+  become: yes
+  vars_prompt:
+    - name: "user_name"
+      prompt: "Enter username"
+      private: no
+
+    - name: "user_password"
+      prompt: "Enter a password for the user"
+      private: yes
+      encrypt: "md5_crypt" #need to have python-passlib installed in local machine before we can use it
+      confirm: yes
+      salt_size: 7
+
+  tasks:
+    - name: Create Directory
+      file:
+        path: "/sftproot/{{ user_name }}/inbox"
+        state: directory
+        mode: 0755
+        recurse: yes
+
+    - name: Create User
+      user:
+        name: "{{ user_name }}"
+        password: "{{ user_password }}"
+        groups: sftponly   # Empty by default.
+        state: present
+        shell: /usr/sbin/nologin       # Defaults to /bin/bash
+        system: no             # Defaults to no
+        createhome: yes        # Defaults to yes
+        home: "/sftproot/{{ user_name }}"  # Defaults to /home/<username>
+
+    - name: Change owner parent directory
+      file:
+        path: "/sftproot/{{ user_name }}"
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: Change owner inbox directory
+      file:
+        path: "/sftproot/{{ user_name }}/inbox"
+        owner: "{{ user_name }}"
+        group: "{{ user_name }}"
+        mode: 0755
+        recurse: yes
