@@ -1,4 +1,3 @@
-# sftp
 ## <u>SFTP user creation with input</u>
 
 ##### Usage
